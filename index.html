@@ -837,7 +837,7 @@
 
           // Get message elements
           const messageBox = document.getElementById('messageBox');
-          const generateMessage = document.getElementById('generateMessage');
+          const generateMessage = document.getElementById('generateMessage'); // This element is not used for messages, can be removed or repurposed
 
           // Get custom modal elements
           const customConfirmModal = document.getElementById('customConfirmModal');
@@ -1127,16 +1127,16 @@
                // Re-shuffle if not enough civs or city mats left
                if (unusedCivs.length < 2) {
                    resetPools(); // Reshuffle both if civs run low
-                   showGenerateMessage("Running low on Civs for random generation, reshuffling all available options.");
+                   showMessage("Running low on Civs for random generation, reshuffling all available options."); // Corrected function call
                }
                if (unusedMats.length < 2) {
                     resetPools(); // Reshuffle both if mats run low
-                    showGenerateMessage("Running low on City Mats for random generation, reshuffling all available options.");
+                    showMessage("Running low on City Mats for random generation, reshuffling all available options."); // Corrected function call
                }
 
                // Ensure we still have enough after potential reshuffle
                if (unusedCivs.length < 2 || unusedMats.length < 2) {
-                   showGenerateMessage("Not enough unique Civs or Mats available to create a new random match.");
+                   showMessage("Not enough unique Civs or Mats available to create a new random match."); // Corrected function call
                    return null; // Cannot create a match
                }
 
@@ -1168,7 +1168,7 @@
                scoreAInput.value = '';
                scoreBInput.value = '';
 
-               showGenerateMessage("Random match generated!");
+               showMessage("Random match generated!"); // Corrected function call
 
                return match;
           }
@@ -1190,6 +1190,7 @@
                           scoreBInput.value = '';
                           hideTieBreaker(); // Hide tie-breaker if visible
                           generateNewRandomMatch(); // Generate the new match
+                          hideCustomConfirm(); // Hide the custom confirm modal after generating
                       }
                       // If not confirmed (user clicked Cancel), do nothing.
                   });
@@ -1259,6 +1260,7 @@
                             scoreBInput.value = '';
 
                             showMessage("Manual match created!");
+                            hideCustomConfirm(); // Hide the custom confirm modal after creating manual match
                        }
                        // If not confirmed (user clicked Cancel), do nothing.
                    });
@@ -1699,14 +1701,14 @@
                   if (customConfirmCallback) {
                       customConfirmCallback(true); // Pass true for OK
                   }
-                  hideCustomConfirm();
+                  hideCustomConfirm(); // Ensure modal is hidden on OK click
               });
 
               customConfirmCancel.addEventListener('click', () => {
                   if (customConfirmCallback) {
                       customConfirmCallback(false); // Pass false for Cancel
                   }
-                  hideCustomConfirm();
+                  hideCustomConfirm(); // Ensure modal is hidden on Cancel click
               });
 
               // Add change listeners for manual select elements to exclude selected options from Team B
@@ -1779,4 +1781,3 @@
 
   </body>
   </html>
-  
