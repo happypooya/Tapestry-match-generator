@@ -263,6 +263,13 @@
                 background-color: #8e44ad;
             }
 
+            #howItWorksButton {
+                background-color: #7f8c8d; /* Gray */
+            }
+            #howItWorksButton:hover {
+                background-color: #95a5a6;
+            }
+
 
            /* Manual Select Inputs */
            .manual-selects {
@@ -444,15 +451,23 @@
           /* Message Box */
           #messageBox {
               margin-top: 1em;
-              padding: 0.8em;
-              background-color: #fff3cd; /* Light yellow */
-              border: 1px solid #ffecb5; /* Darker yellow border */
-              color: #333;
-              border-radius: 4px;
-              text-align: center;
+              padding: 1em; /* Increased padding */
+              background-color: #d4edda; /* Light green for info */
+              border: 1px solid #c3e6cb; /* Darker green border */
+              color: #155724; /* Dark green text */
+              border-radius: 8px; /* More rounded corners */
+              text-align: left; /* Align text left */
               display: none; /* Hidden by default */
-              font-weight: bold;
+              font-weight: normal; /* Normal font weight */
+              cursor: pointer; /* Indicate it's clickable */
+              transition: background-color 0.3s ease; /* Smooth transition */
+              white-space: pre-wrap; /* Preserve line breaks */
           }
+
+          #messageBox:hover {
+              background-color: #c8e5d0; /* Slightly darker green on hover */
+          }
+
 
           /* Fireworks Canvas */
           #fireworksCanvas {
@@ -511,6 +526,8 @@
               margin-bottom: 1.5em;
               font-size: 1.1em;
               color: #333;
+              text-align: left; /* Align text left for readability */
+              white-space: pre-wrap; /* Preserve line breaks */
           }
 
           .custom-modal .button-group {
@@ -534,6 +551,15 @@
             .custom-modal .cancel-button:hover {
                background-color: #c0392b;
            }
+
+           /* Style for the single OK/Close button in the modal */
+           .custom-modal .single-button {
+               background-color: #3498db; /* Blue */
+               margin-top: 1em; /* Add space above the button */
+           }
+            .custom-modal .single-button:hover {
+                background-color: #2980b9;
+            }
 
 
           /* Responsive adjustments */
@@ -633,6 +659,61 @@
                }
            }
 
+            /* Styling for the Select Mode dropdown */
+            #gameModeSelect {
+                padding: 0.5em;
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+                font-size: 1em;
+                background-color: #ffffff;
+                font-family: 'Inter', sans-serif; /* Match app font */
+                color: #2d3436; /* Match app text color */
+                cursor: pointer;
+            }
+
+            #gameModeSelect:hover {
+                 border-color: #a0aec0; /* Subtle hover effect */
+            }
+
+            #gameModeSelect:focus {
+                 outline: none;
+                 border-color: #3498db; /* Highlight on focus */
+                 box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25); /* Add a subtle focus shadow */
+            }
+
+            /* Style for the Select Mode label to match h2 */
+            .select-mode-label {
+                font-family: 'Playfair Display', serif;
+                color: #34495e; /* Darker blue-grey */
+                font-weight: bold; /* Match h2 font weight */
+                margin-right: 0.5em; /* Keep some space between label and select */
+                font-size: 1.4em; /* Match Current Match font size */
+            }
+
+            /* Style for the container holding the Select Mode label and select */
+            .select-mode-container {
+                display: flex;
+                align-items: center;
+                justify-content: center; /* Center content horizontally */
+                padding: 0.6em; /* Match Current Match padding */
+                margin: 0.5em 0; /* Match Current Match margin */
+                background-color: rgba(233, 236, 239, 0.8); /* Match Current Match background */
+                border-radius: 4px; /* Match Current Match border-radius */
+            }
+
+
+            /* Center the select mode section content */
+            .section .button-group > div:first-child {
+                text-align: center; /* Center the label and select */
+                width: 100%; /* Allow it to take full width for centering */
+            }
+
+            /* Remove the space-between from the button-group in the select mode section */
+            .section .button-group {
+                justify-content: center;
+            }
+
+
       </style>
   </head>
   <body>
@@ -643,6 +724,18 @@
 
       <div class="panel">
           <h1>Tapestry Matchup Tracker</h1>
+
+          <div class="section">
+               <div class="button-group">
+                   <div class="select-mode-container"> <label for="gameModeSelect" class="select-mode-label">Select Mode:</label>
+                       <select id="gameModeSelect">
+                           <option value="pvp">Player vs Player</option>
+                           <option value="automa">Player vs Automa</option>
+                       </select>
+                   </div>
+               </div>
+          </div>
+
 
           <div class="section">
               <h2>Current Match</h2>
@@ -742,7 +835,7 @@
                <div class="button-group">
                    <button id="undoButton">Undo Last Match</button>
                    <button id="resetButton">Reset All</button>
-               </div>
+                   </div>
                <h3>Match History</h3>
                <ol id="matchHistory">
                    </ol>
@@ -793,6 +886,7 @@
                   <button id="customConfirmOK" class="confirm-button">OK</button>
                   <button id="customConfirmCancel" class="cancel-button">Cancel</button>
               </div>
+               <button id="customModalClose" class="single-button" style="display: none;">Close</button>
           </div>
       </div>
 
@@ -807,18 +901,30 @@
               "Tinkerers", "Treasure Hunters", "Urban Planners", "Utilitarian", "Weefolk", "The Chosen"
           ];
 
-          // Array of Tapestry City Mats
-          const cityMats = [
-              "Savanna", "Polar", "Veil", "Mesa", "Cavern", "Swamp", "Cloud City", "Canyon", "Quagmire", "Archipelago", "City in a Bottle", "Netherworld"
+          // Array of Tapestry City Mats - Special (from base game and expansions)
+          const specialCityMats = [
+              "Savanna", "Polar", "Veil", "Mesa", "Cavern", "Swamp", "Cloud City", "Canyon", "Quagmire", "Archipelago", "City in a Bottle", "Netherworld",
+              "Metropolis", "Monument", "Oasis"
           ];
+
+          // Array of Tapestry City Mats - Original (for Automa solo play)
+          const originalCityMats = [
+              "Mountains", "Wetland", "Tropical", "Desert", "Grassland", "Forest"
+          ];
+
+          // Combine all city mats for score tracking (ensure all possible mats are in the scores object)
+          const allCityMats = [...specialCityMats, ...originalCityMats];
+
 
           // State variables
           let unusedCivs = []; // Shuffled list of available civs for random generation
-          let unusedMats = []; // Shuffled list of available mats for random generation
+          let unusedSpecialMats = []; // Shuffled list of available special mats for random generation
+          let unusedOriginalMats = []; // Shuffled list of available original mats for random generation
           let matchHistory = []; // Stores completed matches
           let scores = {}; // Tracks scores for civs and mats
           let currentMatch = null; // Stores the match currently being displayed/scored
           let highestCivScore = 0; // Track the highest total score achieved by any civ
+          let currentGameMode = 'pvp'; // Default game mode
 
           // Fireworks variables
           const canvas = document.getElementById('fireworksCanvas');
@@ -832,7 +938,8 @@
           const STORAGE_KEYS = {
               SCORES: 'tapestryTrackerScores',
               MATCH_HISTORY: 'tapestryTrackerMatchHistory',
-              HIGHEST_SCORE: 'tapestryTrackerHighestScore'
+              HIGHEST_SCORE: 'tapestryTrackerHighestScore',
+              GAME_MODE: 'tapestryTrackerGameMode' // Store game mode
           };
 
           // Get message elements
@@ -844,6 +951,8 @@
           const customConfirmMessage = document.getElementById('customConfirmMessage');
           const customConfirmOK = document.getElementById('customConfirmOK');
           const customConfirmCancel = document.getElementById('customConfirmCancel');
+          const customModalClose = document.getElementById('customModalClose'); // Get the new close button
+
 
           // Variable to store the callback function for the custom confirmation
           let customConfirmCallback = null;
@@ -857,6 +966,12 @@
           // Get score input elements
           const scoreAInput = document.getElementById('scoreA');
           const scoreBInput = document.getElementById('scoreB');
+          let teamALabel = null; // Initialize as null, get in DOMContentLoaded
+          let teamBLabel = null; // Initialize as null, get in DOMContentLoaded
+
+
+          // Get game mode select element
+          const gameModeSelect = document.getElementById('gameModeSelect');
 
 
           // --- Initialization ---
@@ -865,14 +980,15 @@
           function initializeScores() {
               scores = {}; // Clear existing scores
               civs.forEach(civ => scores[civ] = { games: 0, points: 0, totalScore: 0 });
-              cityMats.forEach(mat => scores[mat] = { games: 0, points: 0, totalScore: 0 });
+              allCityMats.forEach(mat => scores[mat] = { games: 0, points: 0, totalScore: 0 }); // Use allCityMats here
               highestCivScore = 0; // Reset highest score on full reset
           }
 
           // Shuffle the initial pools for random generation
           function resetPools() {
               unusedCivs = shuffle([...civs]);
-              unusedMats = shuffle([...cityMats]);
+              unusedSpecialMats = shuffle([...specialCityMats]);
+              unusedOriginalMats = shuffle([...originalCityMats]);
           }
 
           // Load data from Local Storage
@@ -880,6 +996,8 @@
               const savedScores = localStorage.getItem(STORAGE_KEYS.SCORES);
               const savedMatchHistory = localStorage.getItem(STORAGE_KEYS.MATCH_HISTORY);
               const savedHighestScore = localStorage.getItem(STORAGE_KEYS.HIGHEST_SCORE);
+              const savedGameMode = localStorage.getItem(STORAGE_KEYS.GAME_MODE);
+
 
               if (savedScores) {
                   scores = JSON.parse(savedScores);
@@ -887,7 +1005,7 @@
                   civs.forEach(civ => {
                       if (!scores[civ]) scores[civ] = { games: 0, points: 0, totalScore: 0 };
                   });
-                   cityMats.forEach(mat => {
+                   allCityMats.forEach(mat => { // Use allCityMats here
                       if (!scores[mat]) scores[mat] = { games: 0, points: 0, totalScore: 0 };
                   });
               } else {
@@ -897,23 +1015,14 @@
               if (savedMatchHistory) {
                   matchHistory = JSON.parse(savedMatchHistory);
                   // Re-populate unused civs/mats based on history that were originally randomly generated (don't have tieBreakerWinner)
-                  // This is a simplification; a more robust solution would track match type
+                  // This is a simplification; a more robust solution would track match type and mats used
                   const usedCivsInRandom = new Set();
-                  const usedMatsInRandom = new Set();
-                  matchHistory.forEach(match => {
-                      if (!match.tieBreakerWinner) {
-                           usedCivsInRandom.add(match.teamA.civ);
-                           usedCivsInRandom.add(match.teamB.civ);
-                           usedMatsInRandom.add(match.teamA.mat);
-                           usedMatsInRandom.add(match.teamB.mat);
-                      }
-                  });
-                  unusedCivs = civs.filter(civ => !usedCivsInRandom.has(civ));
-                  unusedMats = cityMats.filter(mat => !usedMatsInRandom.has(mat));
-                  // Shuffle remaining unused pools
-                  unusedCivs = shuffle(unusedCivs);
-                  unusedMats = shuffle(unusedMats);
+                  // We can't reliably reconstruct which mat pool was used for random matches from history alone
+                  // A full reset of pools on load is simpler and safer for random generation.
+                  resetPools();
 
+                  // However, we need to make sure civs used in history are marked as used if we were to implement more complex pool tracking.
+                  // For now, we'll just reset the pools.
               } else {
                   matchHistory = [];
                   resetPools(); // Reset pools if no history
@@ -933,11 +1042,23 @@
                        });
               }
 
+              if (savedGameMode) {
+                  currentGameMode = savedGameMode;
+                  gameModeSelect.value = currentGameMode; // Set the dropdown value
+              } else {
+                  currentGameMode = 'pvp'; // Default to pvp if no saved mode
+                  gameModeSelect.value = currentGameMode;
+              }
+
+
               // Ensure currentMatch is null after loading data
               currentMatch = null;
 
               // Update the current match display to prompt user action
                document.getElementById("currentMatch").innerHTML = 'Select or Generate a match below!';
+
+              // Update score input labels based on loaded game mode
+              updateScoreInputLabels(currentGameMode);
 
           }
 
@@ -946,6 +1067,7 @@
               localStorage.setItem(STORAGE_KEYS.SCORES, JSON.stringify(scores));
               localStorage.setItem(STORAGE_KEYS.MATCH_HISTORY, JSON.stringify(matchHistory));
               localStorage.setItem(STORAGE_KEYS.HIGHEST_SCORE, highestCivScore.toString());
+              localStorage.setItem(STORAGE_KEYS.GAME_MODE, currentGameMode); // Save game mode
           }
 
 
@@ -960,13 +1082,14 @@
               return array;
           }
 
-          // Display a general message to the user
+          // Display a general message to the user (this one auto-hides)
           function showMessage(message, type = 'info') {
               messageBox.textContent = message;
-              messageBox.style.display = 'block'; // Show the message box
+              // Remove existing type classes
+              messageBox.classList.remove('info', 'error', 'success');
+              messageBox.classList.add(type); // Add the new type class
 
-              // Optional: Add different styling based on type (e.g., 'error', 'success')
-              /*
+              // Apply styles based on type
               if (type === 'error') {
                   messageBox.style.backgroundColor = '#f8d7da'; // light red
                   messageBox.style.color = '#721c24'; // dark red
@@ -975,22 +1098,25 @@
                    messageBox.style.backgroundColor = '#d4edda'; // light green
                    messageBox.style.color = '#155724'; // dark green
                    messageBox.style.borderColor = '#c3e6cb'; // border green
-              } else { // info
+              } else { // info (default)
                    messageBox.style.backgroundColor = '#fff3cd'; // light yellow
                    messageBox.style.color = '#856404'; // dark yellow
                    messageBox.style.borderColor = '#ffeeba'; // border yellow
               }
-              */
 
-              // Hide the message after a few seconds
-              setTimeout(() => {
-                  messageBox.style.display = 'none';
-              }, 5000); // Hide after 5 seconds
+
+              messageBox.style.display = 'block'; // Show the message box
+
+              // This version does NOT auto-hide. It will be closed by clicking it.
           }
 
            // Show the custom confirmation modal
            function showCustomConfirm(message, callback) {
                customConfirmMessage.textContent = message;
+               // Hide the single close button and show the OK/Cancel buttons
+               document.querySelector('.custom-modal .button-group').style.display = 'flex';
+               customModalClose.style.display = 'none';
+
                customConfirmModal.style.display = 'flex'; // Show the modal
                customConfirmCallback = callback; // Store the callback function
            }
@@ -999,6 +1125,17 @@
            function hideCustomConfirm() {
                customConfirmModal.style.display = 'none'; // Hide the modal
                customConfirmCallback = null; // Clear the callback
+           }
+
+           // Show a message in the custom modal with a single close button
+           function showModalMessage(message) {
+               customConfirmMessage.textContent = message;
+               // Hide the OK/Cancel buttons and show the single close button
+               document.querySelector('.custom-modal .button-group').style.display = 'none';
+               customModalClose.style.display = 'block';
+
+               customConfirmModal.style.display = 'flex'; // Show the modal
+               customConfirmCallback = null; // No callback needed for a simple message
            }
 
 
@@ -1122,35 +1259,74 @@
 
           // --- Match and Scoring Logic ---
 
+          // Function to update the score input labels based on game mode
+          function updateScoreInputLabels(mode) {
+              if (teamALabel && teamBLabel) { // Ensure elements are loaded
+                  if (mode === 'automa') {
+                      teamALabel.textContent = 'Score for Player:';
+                      teamBLabel.textContent = 'Score for Automa:';
+                  } else { // pvp mode
+                      teamALabel.textContent = 'Score for Team A:';
+                      teamBLabel.textContent = 'Score for Team B:';
+                  }
+              }
+          }
+
+
           // Function to generate a new random match (the core logic)
           function generateNewRandomMatch() {
-               // Re-shuffle if not enough civs or city mats left
+               // Reset civ pool if needed
                if (unusedCivs.length < 2) {
-                   resetPools(); // Reshuffle both if civs run low
-                   showMessage("Running low on Civs for random generation, reshuffling all available options."); // Corrected function call
-               }
-               if (unusedMats.length < 2) {
-                    resetPools(); // Reshuffle both if mats run low
-                    showMessage("Running low on City Mats for random generation, reshuffling all available options."); // Corrected function call
+                   unusedCivs = shuffle([...civs]);
+                   showMessage("Running low on Civs for random generation, reshuffling all available options.");
                }
 
-               // Ensure we still have enough after potential reshuffle
-               if (unusedCivs.length < 2 || unusedMats.length < 2) {
-                   showMessage("Not enough unique Civs or Mats available to create a new random match."); // Corrected function call
-                   return null; // Cannot create a match
+               let matPoolB = [];
+               let unusedMatsB = [];
+
+               // Determine mat pool for Team B based on game mode
+               if (currentGameMode === 'automa') {
+                   matPoolB = originalCityMats;
+                   unusedMatsB = unusedOriginalMats;
+                   // Reset original mat pool if needed
+                    if (unusedOriginalMats.length < 1) { // Need at least 1 mat for Automa
+                        unusedOriginalMats = shuffle([...originalCityMats]);
+                        showMessage("Running low on Automa City Mats for random generation, reshuffling all available options.");
+                    }
+               } else { // pvp mode
+                   matPoolB = specialCityMats;
+                   unusedMatsB = unusedSpecialMats;
+                   // Reset special mat pool if needed
+                    if (unusedSpecialMats.length < 2) { // Need at least 2 mats for PvP
+                        unusedSpecialMats = shuffle([...specialCityMats]);
+                        showMessage("Running low on Special City Mats for random generation, reshuffling all available options.");
+                    }
                }
+
+               // Check if we have enough mats after potential reshuffle
+               if (currentGameMode === 'automa' && unusedOriginalMats.length < 1) {
+                    showMessage("Not enough unique Automa City Mats available to create a new random match.");
+                    return null;
+               }
+                if (currentGameMode === 'pvp' && unusedSpecialMats.length < 2) {
+                    showMessage("Not enough unique Special City Mats available to create a new random match.");
+                    return null;
+               }
+
 
                const civ1 = unusedCivs.pop();
                const civ2 = unusedCivs.pop();
-               const mat1 = unusedMats.pop();
-               const mat2 = unusedMats.pop();
+               const mat1 = unusedSpecialMats.pop(); // Team A (Player) always uses special mats
+               const mat2 = unusedMatsB.pop(); // Team B (Automa or Player) uses the determined pool
+
 
                const match = {
                    teamA: { civ: civ1, mat: mat1 },
                    teamB: { civ: civ2, mat: mat2 },
                    scoreA: null,
                    scoreB: null,
-                   timestamp: new Date().toISOString() // Add timestamp
+                   timestamp: new Date().toISOString(), // Add timestamp
+                   mode: currentGameMode // Store the game mode for this match
                };
 
                currentMatch = match; // Set the current match
@@ -1160,15 +1336,15 @@
                    `<span class="civ">${currentMatch.teamA.civ}</span> (<span class="mat">${currentMatch.teamA.mat}</span>) VS
                     <span class="civ">${currentMatch.teamB.civ}</span> (<span class="mat">${currentMatch.teamB.mat}</span>)`;
 
-               // Update score input labels
-               document.getElementById("teamALabel").textContent = `Score for ${currentMatch.teamA.civ}:`;
-               document.getElementById("teamBLabel").textContent = `Score for ${currentMatch.teamB.civ}:`;
+               // Update score input labels based on current game mode
+               updateScoreInputLabels(currentGameMode);
+
 
                // Clear previous scores
                scoreAInput.value = '';
                scoreBInput.value = '';
 
-               showMessage("Random match generated!"); // Corrected function call
+               showMessage("Random match generated!");
 
                return match;
           }
@@ -1184,8 +1360,7 @@
                           // User clicked OK
                           currentMatch = null; // Discard current match
                           document.getElementById("currentMatch").innerHTML = 'Select or Generate a match below!';
-                          document.getElementById("teamALabel").textContent = 'Score for Team A:';
-                          document.getElementById("teamBLabel").textContent = 'Score for Team B:';
+                          updateScoreInputLabels(currentGameMode); // Reset labels
                           scoreAInput.value = '';
                           scoreBInput.value = '';
                           hideTieBreaker(); // Hide tie-breaker if visible
@@ -1211,8 +1386,7 @@
                            // User clicked OK
                            currentMatch = null; // Discard current match
                             document.getElementById("currentMatch").innerHTML = 'Select or Generate a match below!';
-                            document.getElementById("teamALabel").textContent = 'Score for Team A:';
-                            document.getElementById("teamBLabel").textContent = 'Score for Team B:';
+                            updateScoreInputLabels(currentGameMode); // Reset labels
                             scoreAInput.value = '';
                             scoreBInput.value = '';
                             hideTieBreaker(); // Hide tie-breaker if visible
@@ -1241,7 +1415,8 @@
                                 teamB: { civ: civB, mat: matB },
                                 scoreA: null,
                                 scoreB: null,
-                                timestamp: new Date().toISOString() // Add timestamp
+                                timestamp: new Date().toISOString(), // Add timestamp
+                                mode: currentGameMode // Store the game mode for this match
                             };
 
                             currentMatch = match; // Set the current match
@@ -1251,9 +1426,9 @@
                                 `<span class="civ">${currentMatch.teamA.civ}</span> (<span class="mat">${currentMatch.teamA.mat}</span>) VS
                                  <span class="civ">${currentMatch.teamB.civ}</span> (<span class="mat">${currentMatch.teamB.mat}</span>)`;
 
-                            // Update score input labels
-                            document.getElementById("teamALabel").textContent = `Score for ${currentMatch.teamA.civ}:`;
-                            document.getElementById("teamBLabel").textContent = `Score for ${currentMatch.teamB.civ}:`;
+                            // Update score input labels based on current game mode
+                            updateScoreInputLabels(currentGameMode);
+
 
                             // Clear previous scores
                             scoreAInput.value = '';
@@ -1291,7 +1466,8 @@
                       teamB: { civ: civB, mat: matB },
                       scoreA: null,
                       scoreB: null,
-                      timestamp: new Date().toISOString() // Add timestamp
+                      timestamp: new Date().toISOString(), // Add timestamp
+                      mode: currentGameMode // Store the game mode for this match
                   };
 
                   currentMatch = match; // Set the current match
@@ -1301,9 +1477,9 @@
                       `<span class="civ">${currentMatch.teamA.civ}</span> (<span class="mat">${currentMatch.teamA.mat}</span>) VS
                        <span class="civ">${currentMatch.teamB.civ}</span> (<span class="mat">${currentMatch.teamB.mat}</span>)`;
 
-                  // Update score input labels
-                  document.getElementById("teamALabel").textContent = `Score for ${currentMatch.teamA.civ}:`;
-                  document.getElementById("teamBLabel").textContent = `Score for ${currentMatch.teamB.civ}:`;
+                  // Update score input labels based on current game mode
+                  updateScoreInputLabels(currentGameMode);
+
 
                   // Clear previous scores
                   scoreAInput.value = '';
@@ -1334,13 +1510,13 @@
               currentMatch.scoreA = scoreA;
               currentMatch.scoreB = scoreB;
 
-              // Check for a tie
-              if (scoreA === scoreB) {
+              // Check for a tie (only prompt tie-breaker in PvP mode)
+              if (scoreA === scoreB && currentGameMode === 'pvp') {
                   promptTieBreaker(); // Prompt for tie-breaker winner
                   return; // Stop here, wait for tie-breaker selection
               }
 
-              // If not a tie, proceed with score update and history
+              // If not a tie or in Automa mode, proceed with score update and history
               updateScores(currentMatch, +1); // Add scores
               matchHistory.push(currentMatch); // Add to history
 
@@ -1356,8 +1532,7 @@
               // Clear the current match display and inputs after submitting
               currentMatch = null; // Reset current match
               document.getElementById("currentMatch").innerHTML = 'Match submitted. Select or Generate a new match below!';
-              document.getElementById("teamALabel").textContent = 'Score for Team A:';
-              document.getElementById("teamBLabel").textContent = 'Score for Team B:';
+              updateScoreInputLabels(currentGameMode); // Reset labels
               scoreAInput.value = '';
               scoreBInput.value = '';
 
@@ -1410,8 +1585,7 @@
               // Clear the current match display and inputs after submitting
               currentMatch = null; // Reset current match
               document.getElementById("currentMatch").innerHTML = 'Match submitted. Select or Generate a new match below!';
-              document.getElementById("teamALabel").textContent = 'Score for Team A:';
-              document.getElementById("teamBLabel").textContent = 'Score for Team B:';
+              updateScoreInputLabels(currentGameMode); // Reset labels
               scoreAInput.value = '';
               scoreBInput.value = '';
 
@@ -1443,8 +1617,14 @@
                        pointsA = 0;
                        pointsB = 3;
                    } else {
-                       pointsA = 1;
-                       pointsB = 1;
+                       // In Automa mode, a tie means the player (Team A) wins the tie-breaker point
+                       if (match.mode === 'automa') {
+                           pointsA = 2; // Assuming 2 points for player win in Automa tie, adjust if needed
+                           pointsB = 1; // Assuming 1 point for Automa loss in tie, adjust if needed
+                       } else { // PvP tie
+                           pointsA = 1;
+                           pointsB = 1;
+                       }
                    }
               }
 
@@ -1491,9 +1671,18 @@
           function updateTables(checkForHighScore = false) {
               // Function to generate table rows and sort
               const generateTableRows = (items, isCivTable) => {
-                  return Object.entries(scores)
-                      .filter(([key]) => isCivTable ? civs.includes(key) : cityMats.includes(key))
-                      .sort((a, b) => {
+                  // Filter based on whether it's the civ table or mat table
+                  const filteredEntries = Object.entries(scores).filter(([key]) => {
+                      if (isCivTable) {
+                          return civs.includes(key);
+                      } else {
+                           // For mats, include all mats from both lists
+                          return allCityMats.includes(key);
+                      }
+                  });
+
+
+                  return filteredEntries.sort((a, b) => {
                           // Sort by points descending
                           if (b[1].points !== a[1].points) {
                               return b[1].points - a[1].points;
@@ -1519,16 +1708,21 @@
               // Check for new high score if requested
               if (checkForHighScore && sortedCivs.length > 0) {
                   const topCiv = sortedCivs[0];
-                  if (topCiv[1].totalScore > highestCivScore) {
-                      highestCivScore = topCiv[1].totalScore;
-                      // Trigger fireworks instead of showing modal
-                      startFireworks(topCiv[0], highestCivScore);
-                  }
+                  // Only trigger fireworks for a new high score in PvP mode (assuming high score is for player)
+                  // If you want high scores for Automa too, adjust this condition
+                   if (currentGameMode === 'pvp' && topCiv[1].totalScore > highestCivScore) {
+                       highestCivScore = topCiv[1].totalScore;
+                       startFireworks(topCiv[0], highestCivScore);
+                   } else if (currentGameMode === 'automa' && topCiv[0] === currentMatch.teamA.civ && topCiv[1].totalScore > highestCivScore) {
+                       // In Automa mode, only trigger fireworks if the *player's* civ gets a new high score
+                       highestCivScore = topCiv[1].totalScore;
+                       startFireworks(topCiv[0], highestCivScore);
+                   }
               }
 
 
-              // Generate and populate Mat table
-              const sortedMats = generateTableRows(cityMats, false);
+              // Generate and populate Mat table (includes all mats)
+              const sortedMats = generateTableRows(allCityMats, false);
               document.querySelector("#matTable tbody").innerHTML = sortedMats
                    .map(([mat, data]) =>
                       `<tr>
@@ -1556,8 +1750,7 @@
                       updateMatchHistoryDisplay(); // Clear history display
                       updateTables(); // Clear scoreboards
                       document.getElementById("currentMatch").innerHTML = 'Select or Generate a match below!';
-                      document.getElementById("teamALabel").textContent = 'Score for Team A:';
-                      document.getElementById("teamBLabel").textContent = 'Score for Team B:';
+                      updateScoreInputLabels(currentGameMode); // Reset labels
                       scoreAInput.value = '';
                       scoreBInput.value = '';
                       currentMatch = null; // Clear current match
@@ -1568,6 +1761,7 @@
                       localStorage.removeItem(STORAGE_KEYS.SCORES);
                       localStorage.removeItem(STORAGE_KEYS.MATCH_HISTORY);
                       localStorage.removeItem(STORAGE_KEYS.HIGHEST_SCORE);
+                      // Don't remove game mode on reset, keep the last selected mode
 
 
                       showMessage("All data reset.");
@@ -1591,10 +1785,16 @@
               // Add the civs and mats back to the unused pools if it was a random match
               // Note: Undoing a manual match doesn't add civs/mats back to the *random* pool.
               // This is intentional to keep the random pool behavior consistent.
-              if (!last.tieBreakerWinner) { // Assuming only random matches wouldn't have this initially
+              // We also need to know which mat pool the undone match used for Team B
+              if (last.mode === 'pvp') {
                   unusedCivs.push(last.teamA.civ, last.teamB.civ);
-                  unusedMats.push(last.teamA.mat, last.teamB.mat);
+                  unusedSpecialMats.push(last.teamA.mat, last.teamB.mat); // Both used special mats
+              } else { // automa mode
+                   unusedCivs.push(last.teamA.civ, last.teamB.civ); // Civs are always from the main pool
+                   unusedSpecialMats.push(last.teamA.mat); // Player's mat was special
+                   unusedOriginalMats.push(last.teamB.mat); // Automa's mat was original
               }
+
 
               // Update the scoreboard tables. Recalculate highest score after undo.
               updateTables(true);
@@ -1607,8 +1807,7 @@
 
               // Optionally, display the undone match details or a message
               document.getElementById("currentMatch").innerHTML = `Undid match: ${last.teamA.civ} (${last.teamA.mat}) ${last.scoreA} - ${last.scoreB} ${last.teamB.civ} (${last.teamB.mat})`;
-              document.getElementById("teamALabel").textContent = 'Score for Team A:';
-              document.getElementById("teamBLabel").textContent = 'Score for Team B:';
+              updateScoreInputLabels(currentGameMode); // Reset labels to current mode
               scoreAInput.value = '';
               scoreBInput.value = '';
               currentMatch = null; // Ensure currentMatch is clear
@@ -1632,15 +1831,22 @@
               });
           }
 
-          // Function to populate the select dropdowns for manual match creation
+          // Function to populate the select dropdowns for manual match creation based on game mode
           function populateManualSelects() {
-              // Populate Team A selects with all options
+              // Populate Team A selects with all options (Player always uses special mats)
               populateSelect(civSelectA, civs);
-              populateSelect(matSelectA, cityMats);
+              populateSelect(matSelectA, specialCityMats);
 
-              // Populate Team B selects initially with all options (no exclusion yet)
-              populateSelect(civSelectB, civs);
-              populateSelect(matSelectB, cityMats);
+              // Populate Team B selects based on game mode
+              if (currentGameMode === 'automa') {
+                  // Automa uses original mats
+                  populateSelect(civSelectB, civs); // Automa uses any civ
+                  populateSelect(matSelectB, originalCityMats); // Automa uses original mats
+               } else { // pvp mode
+                   // Player B uses special mats
+                   populateSelect(civSelectB, civs, civSelectA.value); // Exclude Team A's civ
+                   populateSelect(matSelectB, specialCityMats, matSelectA.value); // Exclude Team A's mat
+              }
           }
 
           // Function to update the match history display
@@ -1669,10 +1875,58 @@
                    // Wrap history details in a span for flexbox
                    historyDetails = `${matchNumber}<span class="match-history-details">${historyDetails}</span>`;
 
+                   // Add game mode to history display
+                   const modeText = match.mode === 'automa' ? '(vs Automa)' : '(PvP)';
+                   historyDetails += ` ${modeText}`;
+
+
                    // Combine details and date, with date on the right
                    return `<li>${historyDetails}${date}</li>`;
                }).join('');
           }
+
+
+          // Handle game mode change
+          function handleGameModeChange() {
+              const newMode = gameModeSelect.value;
+              if (newMode !== currentGameMode) {
+                  // Show confirmation if a match is in progress
+                  if (currentMatch) {
+                       showCustomConfirm("Changing game mode will discard the current match. Are you sure?", (confirmed) => {
+                           if (confirmed) {
+                               currentGameMode = newMode;
+                               saveData(); // Save the new mode
+                               resetMatchDisplay(); // Clear current match display and inputs and update labels
+                               populateManualSelects(); // Repopulate selects based on new mode
+                               showMessage(`Game mode changed to ${newMode === 'automa' ? 'Player vs Automa' : 'Player vs Player'}.`);
+                           } else {
+                               // If canceled, revert the select dropdown
+                               gameModeSelect.value = currentGameMode;
+                           }
+                       });
+                  } else {
+                       // No match in progress, just change mode
+                       currentGameMode = newMode;
+                       saveData(); // Save the new mode
+                       updateScoreInputLabels(currentGameMode); // Update labels immediately
+                       populateManualSelects(); // Repopulate selects based on new mode
+                       showMessage(`Game mode changed to ${newMode === 'automa' ? 'Player vs Automa' : 'Player vs Player'}.`);
+                  }
+              }
+          }
+
+          // Reset current match display and inputs and update labels
+          function resetMatchDisplay() {
+              currentMatch = null;
+              document.getElementById("currentMatch").innerHTML = 'Select or Generate a match below!';
+              updateScoreInputLabels(currentGameMode); // Update labels based on current mode
+              scoreAInput.value = '';
+              scoreBInput.value = '';
+              hideTieBreaker(); // Hide tie-breaker if visible
+          }
+
+          // Function to display the "How it Works" explanation in the message box
+          /* Removed showHowItWorks function */
 
 
           // --- Event Listeners ---
@@ -1685,8 +1939,13 @@
               const resetButton = document.getElementById('resetButton');
               const undoButton = document.getElementById('undoButton');
               const createManualButton = document.getElementById('createManualMatchButton'); // Get manual button
+              const howItWorksButton = document.getElementById('howItWorksButton'); // Get the new button
               const fireworksCanvas = document.getElementById('fireworksCanvas'); // Get canvas element
               const scoreButtons = document.querySelectorAll('.score-button'); // Get all score buttons
+
+              // Get score label elements inside DOMContentLoaded
+              teamALabel = document.getElementById('teamALabel');
+              teamBLabel = document.getElementById('teamBLabel');
 
 
               // Add click event listeners
@@ -1695,6 +1954,16 @@
               if (resetButton) resetButton.addEventListener('click', resetMatches); // Use the new handler for reset
               if (undoButton) undoButton.addEventListener('click', undoLastMatch);
               if (createManualButton) createManualMatchButton.addEventListener('click', createManualMatch); // Add listener for manual button
+              /* Removed howItWorksButton event listener */
+              if (customModalClose) customModalClose.addEventListener('click', hideCustomConfirm); // Add listener for the new close button
+
+              // Add click listener to the message box to close it
+              if (messageBox) {
+                  messageBox.addEventListener('click', () => {
+                      messageBox.style.display = 'none'; // Hide the message box on click
+                  });
+              }
+
 
               // Add event listeners for the custom confirmation modal buttons
               customConfirmOK.addEventListener('click', () => {
@@ -1719,7 +1988,13 @@
 
                matSelectA.addEventListener('change', () => {
                    const selectedMatA = matSelectA.value;
-                   populateSelect(matSelectB, cityMats, selectedMatA);
+                   // Only exclude Team A's mat in PvP mode
+                   if (currentGameMode === 'pvp') {
+                       populateSelect(matSelectB, specialCityMats, selectedMatA);
+                   } else {
+                        // In Automa mode, Team B mat is from a different pool, no exclusion needed based on Team A's mat
+                        populateSelect(matSelectB, originalCityMats);
+                   }
                });
 
                // Add click listeners to score buttons
@@ -1756,13 +2031,19 @@
                   fireworksCanvas.addEventListener('click', stopFireworks);
               }
 
+              // Add change listener for game mode select
+              if (gameModeSelect) {
+                  gameModeSelect.addEventListener('change', handleGameModeChange);
+              }
+
+
               // Load data from local storage on page load
               loadData();
               // Update tables and history display based on loaded data
               updateTables();
               updateMatchHistoryDisplay(); // Update history display on load
-              // Populate the manual select dropdowns
-              populateManualSelects(); // Use the new populate function
+              // Populate the manual select dropdowns based on the loaded game mode
+              populateManualSelects();
 
 
               // Make handleTieBreaker globally accessible for onclick in dynamically created buttons
